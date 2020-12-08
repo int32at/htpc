@@ -1,0 +1,53 @@
+version: "2"
+services:
+
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "80:80/tcp"
+      - "443:443/tcp"
+    environment:
+      TZ: 'Europe/Vienna'
+    volumes:
+       - './etc-pihole/:/etc/pihole/'
+       - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=0
+      - TZ=Europe/Vienna
+      - UMASK_SET=022
+    volumes:
+      - ${TV_DIR}:/tv
+      - ${CONFIG_DIR}:/config
+      - ${DL_DIR}:/downloads
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  nzbget:
+    image: linuxserver/nzbget
+    container_name: nzbget
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+    volumes:
+      - ${CONFIG_DIR}:/config
+      - ${DL_DIR}:/downloads
+    ports:
+      - 6789:6789
+    restart: unless-stopped
