@@ -1,70 +1,70 @@
 version: "2"
 services:
 
-  pihole:
-    container_name: pihole
-    image: pihole/pihole:latest
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "67:67/udp"
-      - "80:80/tcp"
-      - "443:443/tcp"
+  proxy:
+    image: jwilder/nginx-proxy:latest
+    restart: always
     environment:
-      TZ: 'Europe/Vienna'
+      DEFAULT_HOST: default.vhost
+    ports:
+      - "80:80"
     volumes:
-       - ~/pihole:/etc/pihole/
-       - ~/pihole/dnsmasq.d/:/etc/dnsmasq.d/
-    dns:
-      - 127.0.0.1
-      - 1.1.1.1
-    cap_add:
-      - NET_ADMIN
-    restart: unless-stopped
+      - /var/run/docker.sock:/tmp/docker.sock:ro
 
   sonarr:
     image: linuxserver/sonarr
-    container_name: sonarr
     environment:
+      - VIRTUAL_HOST=sonarr.int32.local
       - PUID=1000
       - PGID=0
       - TZ=Europe/Vienna
       - UMASK_SET=022
     volumes:
-      - ~/tv:/tv
-      - ~/movies:/movies
-      - ~/config/sonarr:/config
-      - ~/downloads:/downloads
+      - ./tv:/tv
+      - ./movies:/movies
+      - ./config/sonarr:/config
+      - ./downloads:/downloads
     ports:
       - 8989:8989
     restart: unless-stopped
+    networks:
+      - proxy_default
+      - default
 
   nzbget:
     image: linuxserver/nzbget
-    container_name: nzbget
     environment:
+      - VIRTUAL_HOST=nzb.int32.local
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Vienna
     volumes:
-      - ~/config/nzbget:/config
-      - ~/downloads:/downloads
+      - ./config/nzbget:/config
+      - ./downloads:/downloads
     ports:
       - 6789:6789
     restart: unless-stopped
+    networks:
+      - proxy_default
+      - default
 
   jellyfin:
     image: jellyfin/jellyfin
-    container_name: jellyfin
-    network_mode: host
     environment:
+      - VIRTUAL_HOST=jellyfin.int32.local
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Vienna
     volumes:
-      - ~/config/jellyfin:/config
-      - ~/tv:/tv
-      - ~/movies:/movies
+      - ./config/jellyfin:/config
+      - ./tv:/tv
+      - ./movies:/movies
     ports:
       - 8096:8096
     restart: unless-stopped
+    networks:
+      - proxy_default
+      - default
+
+networks:
+  proxy_default: null
