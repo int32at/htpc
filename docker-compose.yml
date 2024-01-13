@@ -47,20 +47,20 @@ services:
     networks:
       - proxy_default
       - default
-
-  jellyfin:
-    image: jellyfin/jellyfin
+      
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
     environment:
-      - VIRTUAL_HOST=jellyfin.int32.local
+      - VIRTUAL_HOST=radarr.int32.local
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Vienna
+      - TZ=Etc/UTC
     volumes:
-      - ./config/jellyfin:/config
-      - ./tv:/tv
-      - ./movies:/movies
+      - ./config/radarr:/config
+      - ./movies:/movies #optional
     ports:
-      - 8096:8096
+      - 7878:7878
     restart: unless-stopped
     networks:
       - proxy_default
